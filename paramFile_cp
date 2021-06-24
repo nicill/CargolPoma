@@ -1,0 +1,7 @@
+# this file contains an example of the input parameters to transform a mosaic or sequence of mosaics into patches 
+# BE CAREFUL! this file shuldn't have an empty final line!
+#patchsize 
+patchSize 150
+
+# images <path/to/datasets/> <image_folder> <masks_folder> <patches_folder> <augment/no_augment> <n_classes> <class_name_1> <class_name_2> ... <class_name_n>
+images /home/ferranroure/workspace/cargol-poma/datasets/ crack_detection_ds/images/ crack_detection_ds/masks/ crack_detection_ds/patches/ augmentation 6 cables cracks joints lights trays wall
