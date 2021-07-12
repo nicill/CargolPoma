@@ -14,11 +14,12 @@ class CPDataset(Dataset):
     # At the same time, load all the labels from the folder names, put them into a list too!
 
     def __init__(self,dataFolder=None,listOfClasses=None):
-        regex = re.compile('([^/]+)PATCH\d+.jpg$')
+        regex = re.compile('SP([^/]+)PATCH\d+.jpg$')
         classesDict={}
         self.listOfClasses=listOfClasses
         if listOfClasses is not None:
             for i in range(len(self.listOfClasses)):classesDict[self.listOfClasses[i]]=i
+        else:print("creating dataset with empty list of classes")
         #r'([^/]+)PATCH\d+.jpg$'
 
         self.folder=dataFolder
@@ -31,6 +32,7 @@ class CPDataset(Dataset):
                 if regex.match(file):
                    #print(file)
                    currentClass= re.split(r'SP([^/]+)PATCH\d+.jpg$',file)[1]
+                   #print("```````````````````````````````@@@@ "+str(currentClass))
                    currentImage=cv2.imread(os.path.join(self.folder,file))
                    if currentImage is None: raise Exception("CPDataset Constructor, problems reading file "+file)
 
@@ -41,18 +43,19 @@ class CPDataset(Dataset):
         print("Read a CPDataset with "+str(self.len)+" images of the following classes "+str(self.labelList))
 
 
-    def breakTrainValid(dataS,proportion):#Create a dataset from an existing one
-        train=CPDataset()
-        valid=CPDataset()
 
 
-        for i in range(int(len(dataS)*proportion)):
-            valid.imageList.append(dataS.imageList[i].copy())
-            valid.labelList.append(dataS.labelList[i])
+    def breakTrainValid(self,proportion):#Create a dataset from an existing one
+        train=CPDataset(None,self.listOfClasses)
+        valid=CPDataset(None,self.listOfClasses)
 
-        for i in range(int(len(dataS)*proportion),len(dataS)):
-            train.imageList.append(dataS.imageList[i].copy())
-            train.labelList.append(dataS.labelList[i])
+        for i in range(int(len(self)*proportion)):
+            valid.imageList.append(self.imageList[i].copy())
+            valid.labelList.append(self.labelList[i])
+
+        for i in range(int(len(self)*proportion),len(self)):
+            train.imageList.append(self.imageList[i].copy())
+            train.labelList.append(self.labelList[i])
 
         print("breaking "+str(len(train))+" and "+str(len(valid)))
 
