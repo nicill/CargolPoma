@@ -259,11 +259,12 @@ def train_test_net(init_net_name, listOfClasses, importantClassCode, verbose=1):
 def main():
     # Init
     c = color_codes()
-    listOfClasses=["cargol_poma","ground","water"]
-    importantClass="cargol_poma"
+    listOfClasses=["cargolpoma","ground","highlight","plant"]
+    importantClass="cargolpoma"
     classDict={}
     for i in range(len(listOfClasses)):classDict[listOfClasses[i]]=i
     importantClassCode=int(classDict[importantClass])
+    print(listOfClasses)
 
     print(torchvision.__version__)
 

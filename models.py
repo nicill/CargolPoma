@@ -100,34 +100,34 @@ class myFeatureExtractor(BaseModel):
         if featEx=="res":
             self.featEx = torchModels.resnet50(pretrained=True)
             num_ftrs = self.featEx.fc.in_features
-            self.featEx.fc = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.fc = nn.Linear(num_ftrs, self.n_outputs)
         elif featEx=="resBIG":
             self.featEx = torchModels.resnet152(pretrained=True)
             num_ftrs = self.featEx.fc.in_features
-            self.featEx.fc = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.fc = nn.Linear(num_ftrs, self.n_outputs)
         elif featEx=="resnext":
             self.featEx = torchModels.resnext101_32x8d(pretrained=True)
             num_ftrs = self.featEx.fc.in_features
-            self.featEx.fc = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.fc = nn.Linear(num_ftrs, self.n_outputs)
         elif featEx=="wideresnet":
             self.featEx = torchModels.wide_resnet101_2(pretrained=True)
             num_ftrs = self.featEx.fc.in_features
-            self.featEx.fc = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.fc = nn.Linear(num_ftrs, self.n_outputs)
         elif featEx=="dense":
             self.featEx = torchModels.densenet161(pretrained=True)
             num_ftrs = self.featEx.classifier.in_features
-            self.featEx.classifier = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.classifier = nn.Linear(num_ftrs,self.n_outputs)
         elif featEx=="vgg":
             self.featEx = torchModels.vgg19_bn(pretrained=True)
             num_ftrs = self.featEx.classifier[6].in_features
-            self.featEx.classifier[6] = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.classifier[6] = nn.Linear(num_ftrs, self.n_outputs)
         elif featEx=="alex":
             self.featEx = torchModels.alexnet(pretrained=True)
             num_ftrs = self.featEx.classifier[6].in_features
-            self.featEx.classifier[6] = nn.Linear(num_ftrs, 2*self.n_outputs)
+            self.featEx.classifier[6] = nn.Linear(num_ftrs, self.n_outputs)
         elif featEx=="squeeze":
             self.featEx = torchModels.squeezenet1_0(pretrained=True)
-            self.featEx.classifier[1] = nn.Conv2d(512, 2*self.n_outputs, kernel_size=(1,1), stride=(1,1))
+            self.featEx.classifier[1] = nn.Conv2d(512, self.n_outputs, kernel_size=(1,1), stride=(1,1))
         else: raise Exception("Exception when constructing feature extractor, unknown architecture "+str(featEx))
 
 
@@ -198,7 +198,7 @@ class myFeatureExtractor(BaseModel):
         #firstOutput=self.featEx(out.to(self.device))[:,:self.n_outputs,...]
         #secondOutput=self.featEx(out.to(self.device))[:,self.n_outputs:,...]
 
-        output=self.featEx(out.to(self.device))[:,:self.n_outputs,...]
+        output=self.featEx(out.to(self.device))
 
         return torch.sigmoid(output)
 

@@ -14,7 +14,8 @@ class CPDataset(Dataset):
     # At the same time, load all the labels from the folder names, put them into a list too!
 
     def __init__(self,dataFolder=None,listOfClasses=None):
-        regex = re.compile('SP([^/]+)PATCH\d+.jpg$')
+        #regex = re.compile('SP([^/]+)PATCH\d+.jpg$')
+        regex = re.compile('([^/]+)PATCH\d+.jpg$')
         classesDict={}
         self.listOfClasses=listOfClasses
         if listOfClasses is not None:
@@ -31,7 +32,8 @@ class CPDataset(Dataset):
               for file in files:
                 if regex.match(file):
                    #print(file)
-                   currentClass= re.split(r'SP([^/]+)PATCH\d+.jpg$',file)[1]
+                   #currentClass= re.split(r'SP([^/]+)PATCH\d+.jpg$',file)[1]
+                   currentClass= re.split(r'([^/]+)PATCH\d+.jpg$',file)[1]
                    #print("```````````````````````````````@@@@ "+str(currentClass))
                    currentImage=cv2.imread(os.path.join(self.folder,file))
                    if currentImage is None: raise Exception("CPDataset Constructor, problems reading file "+file)
@@ -40,9 +42,7 @@ class CPDataset(Dataset):
                    self.labelList.append(classesDict[currentClass])
 
         self.len=len(self.imageList)
-        print("Read a CPDataset with "+str(self.len)+" images of the following classes "+str(self.labelList))
-
-
+        #print("Read a CPDataset with "+str(self.len)+" images of the following classes "+str(self.labelList))
 
 
     def breakTrainValid(self,proportion):#Create a dataset from an existing one
