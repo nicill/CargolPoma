@@ -27,6 +27,8 @@ class CPDataset(Dataset):
         self.imageList=[]
         self.labelList=[]
 
+        stupidCount=0
+
         if dataFolder is not None:
             for root, dirs, files in os.walk(dataFolder):
               for file in files:
@@ -37,12 +39,20 @@ class CPDataset(Dataset):
                    #print("```````````````````````````````@@@@ "+str(currentClass))
                    currentImage=cv2.imread(os.path.join(self.folder,file))
                    if currentImage is None: raise Exception("CPDataset Constructor, problems reading file "+file)
+                 #  if currentClass=="plant":
+                #       cv2.imwrite(str(classesDict[currentClass])+"class"+str(stupidCount)+"plant.jpg",currentImage)
+                #       stupidCount+=1
 
                    self.imageList.append(np.moveaxis(currentImage,-1,0))#  a pytorch li agrada tenir el numero de canals davant
                    self.labelList.append(classesDict[currentClass])
 
+                   #if currentClass!="ground" and self.labelList[-1]==0:
+                    #   print(self.labelList[-1])
+
+
         self.len=len(self.imageList)
         #print("Read a CPDataset with "+str(self.len)+" images of the following classes "+str(self.labelList))
+        #sys.exit()
 
 
     def breakTrainValid(self,proportion):#Create a dataset from an existing one
@@ -58,7 +68,7 @@ class CPDataset(Dataset):
             train.labelList.append(self.labelList[i])
 
         print("breaking "+str(len(train))+" and "+str(len(valid)))
-
+        #print("with classes "+str(valid.labelList)+"\n "+str(train.labelList))
 
         return train,valid
 
@@ -68,11 +78,15 @@ class CPDataset(Dataset):
 
             inputs = self.imageList[index].astype(np.float32)
 
+            #image=np.moveaxis(self.imageList[index],0,-1)
+
             # the target is a list of probabilities of belonging to each class
             target = np.zeros(len(self.listOfClasses))
             target[self.labelList[index]]=1
 
-            #print("returning target "+str(target))
+            #cv2.imwrite(str(self.labelList[index])+"im"+str(index)+".jpg",image)
+
+            #print("returning target "+str(target)+" with "+str(self.labelList[index]))
 
             return inputs, target
 

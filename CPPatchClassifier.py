@@ -84,7 +84,7 @@ def parse_inputs():
     parser.add_argument(
         '-t', '--patch-size',
         dest='patch_size',
-        type=int, default=128,
+        type=int, default=50,
         help='Patch size'
     )
     parser.add_argument(
@@ -112,8 +112,8 @@ def train_test_net(init_net_name, listOfClasses, importantClassCode, verbose=1):
     addScheduler=True
 
     # Data loading (or preparation)
-    lrList=[0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.0001,0.0002,0.0003,0.0004,0.0005,0.0006,0.0007,0.0008,0.0009,0.00001,0.00002,0.00003,0.00004,0.00005,0.00006,0.00007,0.00008,0.00009]
-
+    #lrList=[0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.0001,0.0002,0.0003,0.0004,0.0005,0.0006,0.0007,0.0008,0.0009,0.00001,0.00002,0.00003,0.00004,0.00005,0.00006,0.00007,0.00008,0.00009]
+    lrList=[0.009]
     for learningRate in lrList:
         resultsList=[]
 
@@ -259,12 +259,14 @@ def train_test_net(init_net_name, listOfClasses, importantClassCode, verbose=1):
 def main():
     # Init
     c = color_codes()
-    listOfClasses=["cargolpoma","ground","highlight","plant"]
+    listOfClasses=["cargolpoma","ground","highlight","plant","water"]
     importantClass="cargolpoma"
     classDict={}
     for i in range(len(listOfClasses)):classDict[listOfClasses[i]]=i
     importantClassCode=int(classDict[importantClass])
+    print("looking for class "+str(importantClassCode) )
     print(listOfClasses)
+    print(classDict)
 
     print(torchvision.__version__)
 

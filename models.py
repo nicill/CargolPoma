@@ -195,12 +195,10 @@ class myFeatureExtractor(BaseModel):
             out.append(self.norm(x_.cpu()))
         out = torch.stack(out)
 
-        #firstOutput=self.featEx(out.to(self.device))[:,:self.n_outputs,...]
-        #secondOutput=self.featEx(out.to(self.device))[:,self.n_outputs:,...]
-
         output=self.featEx(out.to(self.device))
 
-        return torch.sigmoid(output)
+        #return torch.sigmoid(output)
+        return torch.softmax(output,1)
 
     #def dropout_update(self):
     #    super().dropout_update()
@@ -215,7 +213,11 @@ class myFeatureExtractor(BaseModel):
         # create empty output mask
         # create a mask of ones to be added each time a patch is found to contain the label
         outputMask = np.zeros((mosaic.shape[0], mosaic.shape[1]), dtype="uint8")
-        detectionThreshold=0.5
+        detectionThreshold=0.95
+        print("in classify patches, looking for class "+str(classToRefine))
+
+        countPos=0
+        countNeg=0
 
         for (x, y, mosaicW, maskW) in sliding_windowMosaicMask(mosaic, outputMask, stepSize, windowSize=(patchSize, patchSize)):
 
@@ -225,18 +227,30 @@ class myFeatureExtractor(BaseModel):
 
             with torch.no_grad():
                 currentImage=np.expand_dims(np.moveaxis(mosaicW,-1,0), axis=0)
+                #print(currentImage.shape)
                 seg_pi = self(torch.from_numpy(currentImage))
                 probs=seg_pi[0]
             if probs[classToRefine]>detectionThreshold:
+                countPos+=1
+                #print("found one! "+str(probs)+" "+str(probs[classToRefine]))
                 # maskW = np.add(maskW, maskOfOnes)
                 maskW[:] += 1
                 # print(str(np.count_nonzero(maskW)) +" "+str(np.count_nonzero(outputMask)))
+            else:
+                countNeg+=1
+
 
         # At the end of the loop, we have added ones every time a patch has been classified as belonging to the class
         oMaskMax = np.max(outputMask)
-        heatMapPerc=0.5
+        print(countPos)
+        print(countNeg)
+        print(oMaskMax)
+        heatMapPerc=0.75
+        cv2.imwrite("HMres.jpg", outputMask*int(255/oMaskMax))
         outputMask[outputMask<int(oMaskMax*heatMapPerc)]=0
         outputMask[outputMask!=0]=255
+        cv2.imwrite("HMresBLACK.jpg", outputMask)
+        sys.exit(0)
         # print("output mask max!! "+str(oMaskMax))
         return outputMask
 
@@ -295,94 +309,6 @@ class myFeatureExtractor(BaseModel):
             else:
                 print("WARNING: Invalid image format. "+file+" should be a jpg image", "yellow")
 
-"""
-            # Init
-            self.eval()
-            seg=[]
-            for x in range(self.n_outputs):seg.append([])
-
-            # Init
-            t_in = time.time()
-
-            for i, im in enumerate(data):
-
-                # Case init
-                t_case_in = time.time()
-
-                # This branch is only used when images are too big. In this case
-                # they are split in patches and each patch is trained separately.
-                # Currently, the image is partitioned in blocks with no overlap,
-                # however, it might be a good idea to sample all possible patches,
-                # test them, and average the results. I know both approaches
-                # produce unwanted artifacts, so I don't know.
-                seg_i=[]
-                if patch_size is not None:
-
-                    # Initial results. Filled to 0.
-                    for x in range(self.n_outputs):
-                        #seg_i.append([np.zeros(im.shape[1:])])
-                        seg_i.append(np.zeros(im.shape[1:]))
-
-                    print("after initial filling, seg_i length "+str(len(seg_i)))
-
-                    limits = tuple(
-                        list(range(0, lim, patch_size))[:-1] + [lim - patch_size]
-                        for lim in im.shape[1:] #was for lim in data.shape[1:]
-                    )
-                    print("limits out "+str(limits))
-                    limits_product = list(itertools.product(*limits))
-
-                    n_patches = len(limits_product)
-
-                    # The following code is just a normal test loop with all the
-                    # previously computed patches.
-                    for pi, (xi, xj) in enumerate(limits_product):
-                        # Here we just take the current patch defined by its slice
-                        # in the x and y axes. Then we convert it into a torch
-                        # tensor for testing.
-                        xslice = slice(xi, xi + patch_size)
-                        yslice = slice(xj, xj + patch_size)
-
-                        currentImage=im[slice(None), xslice, yslice]
-
-                        if not uselessImage(currentImage):
-
-                            data_tensor = to_torch_var(
-                                np.expand_dims(currentImage, axis=0)
-                            )
-
-                            # Testing itself.
-                            with torch.no_grad():
-                                #torch.cuda.synchronize()
-                                #seg_pi, unc_pi, _, tops_pi = self(data_tensor)
-                                seg_pi = self(data_tensor)
-                                #print("seg_pi is "+str(seg_pi))
-                                seg_piFirst=seg_pi[0][0]
-                                #print("seg_piFirst is "+str(seg_piFirst))
-                                seg_piSecond=seg_pi[1][0]
-                                #print("seg_piSecond is "+str(seg_piSecond))
-                                #torch.cuda.synchronize()
-                                #torch.cuda.empty_cache()
-
-                                #print("seg_pi is "+str(seg_pi))
-                                #for au in seg_pi[0]:
-                                #    if au>0.5 or au<0.5: print(au)
-                            probThreshold=0.4
-                            for x in range(self.n_outputs):
-                                # we store the probability of this class in this patch
-                                #seg_i[x][xslice, yslice]=int(255*seg_piFirst.cpu().numpy()[x]*seg_piSecond.cpu().numpy()[x])
-                                if seg_piFirst.cpu().numpy()[x]>probThreshold:
-                                    if not refine or (x not in classesToRefine) :seg_i[x][xslice, yslice]=255
-                                    else: seg_i[x][xslice, yslice]=self.refine(currentImage,patch_size,x)
-
-
-                for x in range(self.n_outputs):seg[x].append(seg_i[x])
-                #for x in range(self.n_outputs):print(str(len(seg_i[x]))+" ",end="")
-
-
-            return seg
-
-"""
 
 #refine a mask created with patch predictions
 # return a binary mask with the same size as im with 255 where the class is present
